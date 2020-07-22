@@ -35,4 +35,3 @@ index 9dc4cf1..2086a95 100644
  		sprintf(path, "/proc/net/rpc/%s/flush", cachelist[c]);
 -- 
 2.19.2
-

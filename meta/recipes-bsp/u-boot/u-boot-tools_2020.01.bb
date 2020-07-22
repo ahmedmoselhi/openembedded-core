@@ -1,3 +1,5 @@
+require u-boot-common.inc
+
 SUMMARY = "U-Boot bootloader tools"
 DEPENDS += "openssl"
 
@@ -63,3 +65,4 @@ RDEPENDS_${PN} += "${PN}-mkimage ${PN}-mkenvimage"
 RDEPENDS_${PN}_class-native = ""
 
 BBCLASSEXTEND = "native nativesdk"
+

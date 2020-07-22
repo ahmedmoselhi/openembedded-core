@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=95f3a93a5c3c7888de623b46ea085a84"
 
 # util-linux for libblkid
 DEPENDS = "libcap libevent util-linux sqlite3 libtirpc"
-RDEPENDS_${PN} = "${PN}-client bash"
+RDEPENDS_${PN} = "${PN}-client"
 RRECOMMENDS_${PN} = "kernel-module-nfsd"
 
 inherit useradd
@@ -29,17 +29,11 @@ SRC_URI = "${KERNELORG_MIRROR}/linux/utils/nfs-utils/${PV}/nfs-utils-${PV}.tar.x
            file://nfs-utils-debianize-start-statd.patch \
            file://bugfix-adjust-statd-service-name.patch \
            file://0001-cacheio-use-intmax_t-for-formatted-IO.patch \
-           file://clang-format-string.patch \
            file://0001-Makefile.am-fix-undefined-function-for-libnsm.a.patch \
-           file://0001-Don-t-build-tools-with-CC_FOR_BUILD.patch \
-           file://0001-Fix-include-order-between-config.h-and-stat.h.patch \
-           file://0001-Disable-statx-if-using-glibc-emulation.patch \
-"
-SRC_URI_append_libc-glibc = " file://0001-configure.ac-Do-not-fatalize-Wmissing-prototypes.patch"
-SRC_URI_append_libc-musl = " file://nfs-utils-musl-res_querydomain.patch"
-
-SRC_URI[md5sum] = "161efe469ec1b06f1c750bd87f8ba6dd"
-SRC_URI[sha256sum] = "85274ada94479b1beba9f8eeffd19f477c53a6710b9998d1192c807854087736"
+           file://clang-warnings.patch \
+           "
+SRC_URI[md5sum] = "06020c76f531ed97f3145514901e0e7c"
+SRC_URI[sha256sum] = "af65fce5dd8370cff9ead67baac5a6cd69c376dcadfef264dc2c78c904f26599"
 
 # Only kernel-module-nfsd is required here (but can be built-in)  - the nfsd module will
 # pull in the remainder of the dependencies.
@@ -66,8 +60,6 @@ EXTRA_OECONF = "--with-statduser=rpcuser \
                 --with-statdpath=/var/lib/nfs/statd \
                "
 
-CFLAGS += "-Wno-error=format-overflow"
-
 PACKAGECONFIG ??= "tcp-wrappers \
     ${@bb.utils.filter('DISTRO_FEATURES', 'ipv6', d)} \
 "
@@ -75,9 +67,9 @@ PACKAGECONFIG_remove_libc-musl = "tcp-wrappers"
 PACKAGECONFIG[tcp-wrappers] = "--with-tcp-wrappers,--without-tcp-wrappers,tcp-wrappers"
 PACKAGECONFIG[ipv6] = "--enable-ipv6,--disable-ipv6,"
 # libdevmapper is available in meta-oe
-PACKAGECONFIG[nfsv41] = "--enable-nfsv41,--disable-nfsv41,libdevmapper"
-# keyutils is available in meta-security
-PACKAGECONFIG[nfsv4] = "--enable-nfsv4,--disable-nfsv4,keyutils"
+PACKAGECONFIG[nfsv41] = "--enable-nfsv41,--disable-nfsv41,libdevmapper,libdevmapper"
+# keyutils is available in meta-oe
+PACKAGECONFIG[nfsv4] = "--enable-nfsv4,--disable-nfsv4,keyutils,python3-core"
 
 PACKAGES =+ "${PN}-client ${PN}-mount ${PN}-stats"
 
@@ -102,7 +94,9 @@ FILES_${PN}-mount = "${base_sbindir}/*mount.nfs*"
 FILES_${PN}-stats = "${sbindir}/mountstats ${sbindir}/nfsiostat"
 RDEPENDS_${PN}-stats = "python3-core"
 
-FILES_${PN} += "${systemd_unitdir}"
+FILES_${PN}-staticdev += "${libdir}/libnfsidmap/*.a"
+
+FILES_${PN} += "${systemd_unitdir} ${libdir}/libnfsidmap/"
 
 do_configure_prepend() {
         sed -i -e 's,sbindir = /sbin,sbindir = ${base_sbindir},g' \
